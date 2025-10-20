@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CyberSpace - Виртуальная Вселенная</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Частицы фона -->
+    <canvas id="particles"></canvas>
+    
+    <!-- Неоновые линии -->
+    <div class="neon-grid"></div>
+    
+    <!-- Основной контейнер -->
+    <div class="container">
+        <!-- Заголовок с эффектом неона -->
+        <header class="header">
+            <h1 class="neon-text" data-text="CYBERSPACE">CYBERSPACE</h1>
+            <p class="subtitle">Виртуальная вселенная возможностей</p>
+        </header>
+
+        <!-- Игровая панель -->
+        <div class="game-panel">
+            <div class="game-card" id="reaction-game">
+                <div class="game-icon">⚡</div>
+                <h3>Тест реакции</h3>
+                <p>Проверь свою скорость</p>
+                <div class="game-stats">
+                    <span>Лучший: <span id="best-time">0</span>ms</span>
+                </div>
+            </div>
+
+            <div class="game-card" id="memory-game">
+                <div class="game-icon">🧠</div>
+                <h3>Память</h3>
+                <p>Тренируй память</p>
+                <div class="game-stats">
+                    <span>Рекорд: <span id="memory-score">0</span></span>
+                </div>
+            </div>
+
+            <div class="game-card" id="maze-game">
+                <div class="game-icon">🎮</div>
+                <h3>Лабиринт</h3>
+                <p>Найди выход</p>
+                <div class="game-stats">
+                    <span>Пройдено: <span id="mazes-completed">0</span></span>
+                </div>
+            </div>
+
+            <div class="game-card" id="typing-game">
+                <div class="game-icon">⌨️</div>
+                <h3>Скорость печати</h3>
+                <p>Проверь навыки</p>
+                <div class="game-stats">
+                    <span>Слов/мин: <span id="typing-speed">0</span></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Активность пользователя -->
+        <div class="activity-panel">
+            <div class="activity-card">
+                <h3>Твоя статистика</h3>
+                <div class="stats">
+                    <div class="stat-item">
+                        <span class="stat-label">Время на сайте:</span>
+                        <span class="stat-value" id="time-spent">00:00:00</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Активность:</span>
+                        <span class="stat-value" id="activity-level">Новичок</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Достижения:</span>
+                        <span class="stat-value" id="achievements">0/10</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Секретные коды -->
+        <div class="secret-panel">
+            <input type="text" id="secret-code" placeholder="Введи секретный код...">
+            <button onclick="checkSecretCode()">Активировать</button>
+        </div>
+    </div>
+
+    <!-- Модальные окна игр -->
+    <div id="game-modals">
+        <!-- Модальное окно теста реакции -->
+        <div id="reaction-modal" class="modal">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <h2>Тест реакции</h2>
+                <div class="reaction-area" id="reaction-area">
+                    <div class="target-circle" id="reaction-target"></div>
+                </div>
+                <p>Время реакции: <span id="current-time">0</span>ms</p>
+                <button onclick="startReactionTest()">Начать тест</button>
+            </div>
+        </div>
+
+        <!-- Модальное окно игры на память -->
+        <div id="memory-modal" class="modal">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <h2>Тренировка памяти</h2>
+                <div class="memory-grid" id="memory-grid"></div>
+                <div class="memory-info">
+                    <p>Попытки: <span id="attempts">0</span></p>
+                    <p>Найденные пары: <span id="pairs-found">0</span>/8</p>
+                </div>
+                <button onclick="startMemoryGame()">Новая игра</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Аудио элементы -->
+    <audio id="click-sound" src="data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAA=="></audio>
+    <audio id="success-sound" src="data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAA=="></audio>
+
+    <script src="script.js"></script>
+</body>
+</html>
