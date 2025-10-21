@@ -1,541 +1,357 @@
-// Основной класс приложения
-class CyberSpace {
-    constructor() {
-        this.init();
-        this.startTime = new Date();
-        this.achievements = new Set();
-        this.stats = {
-            reaction: 0,
-            memory: 0,
-            mazes: 0,
-            typing: 0,
-            timeSpent: 0
-        };
-        this.loadStats();
+// Конфигурация приложения
+const APP_CONFIG = {
+    version: '2.3.0',
+    build: '2024.01.20'
+};
+
+// Статические данные игр
+const GAMES_DATA = [
+    {
+        id: "1",
+        name: "Dragon's Quest",
+        genre: "RPG | Fantasy",
+        image: "https://img.icons8.com/color/70/000000/dragon.png",
+        url: "https://t.me/dragonsquest_bot/start",
+        rating: 4
+    },
+    {
+        id: "2", 
+        name: "Cyberpunk Drift",
+        genre: "Racing | Sci-Fi",
+        image: "https://img.icons8.com/color/70/000000/cyberpunk.png",
+        url: "https://t.me/cyberpunkdrift_bot/start",
+        rating: 4
+    },
+    {
+        id: "3",
+        name: "Cosmic Warfare",
+        genre: "Strategy | Sci Sim",
+        image: "https://img.icons8.com/color/70/000000/space-shuttle.png", 
+        url: "https://t.me/cosmicwarfare_bot/start",
+        rating: 4
+    },
+    {
+        id: "4",
+        name: "Happy Farm",
+        genre: "Simulation | Farming",
+        image: "https://img.icons8.com/color/70/000000/farm.png",
+        url: "https://t.me/happyfarm_bot/start",
+        rating: 4
     }
+];
 
-    init() {
-        this.initParticles();
-        this.initGames();
-        this.initEventListeners();
-        this.startTimeTracker();
-        this.createCyberEffects();
+// Статические данные новостей
+const NEWS_DATA = [
+    {
+        id: "1", 
+        title: "Добро пожаловать в Games Verse!",
+        content: "Запущена новая игровая платформа с лучшими играми Telegram. Теперь все игры в одном месте!",
+        date: new Date().toISOString(),
+        image: ""
+    },
+    {
+        id: "2",
+        title: "Новые игры добавлены",
+        content: "В каталог добавлены популярные игры: Dragon's Quest, Cyberpunk Drift, Cosmic Warfare и Happy Farm.",
+        date: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+        image: ""
+    },
+    {
+        id: "3",
+        title: "Обновление дизайна",
+        content: "Полностью обновлен интерфейс приложения. Улучшена навигация и добавлены новые функции.",
+        date: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+        image: ""
     }
+];
 
-    // Система частиц
-    initParticles() {
-        const canvas = document.getElementById('particles');
-        const ctx = canvas.getContext('2d');
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
+// Инициализация приложения
+document.addEventListener('DOMContentLoaded', function() {
+    initializeApp();
+});
 
-        class Particle {
-            constructor() {
-                this.reset();
-            }
-
-            reset() {
-                this.x = Math.random() * canvas.width;
-                this.y = Math.random() * canvas.height;
-                this.vx = (Math.random() - 0.5) * 2;
-                this.vy = (Math.random() - 0.5) * 2;
-                this.size = Math.random() * 3 + 1;
-                this.alpha = Math.random() * 0.5 + 0.2;
-                this.color = `hsl(${Math.random() * 120 + 120}, 100%, 50%)`;
-            }
-
-            update() {
-                this.x += this.vx;
-                this.y += this.vy;
-
-                if (this.x < 0 || this.x > canvas.width) this.vx *= -1;
-                if (this.y < 0 || this.y > canvas.height) this.vy *= -1;
-
-                this.alpha -= 0.002;
-                if (this.alpha <= 0) {
-                    this.reset();
-                }
-            }
-
-            draw() {
-                ctx.save();
-                ctx.globalAlpha = this.alpha;
-                ctx.fillStyle = this.color;
-                ctx.beginPath();
-                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-                ctx.fill();
-                ctx.restore();
-            }
-        }
-
-        const particles = Array.from({ length: 150 }, () => new Particle());
-
-        function animate() {
-            ctx.fillStyle = 'rgba(10, 10, 10, 0.1)';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-            particles.forEach(particle => {
-                particle.update();
-                particle.draw();
-            });
-
-            requestAnimationFrame(animate);
-        }
-
-        animate();
-
-        window.addEventListener('resize', () => {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-        });
-    }
-
-    // Инициализация игр
-    initGames() {
-        this.initReactionGame();
-        this.initMemoryGame();
-        this.initEventListeners();
-    }
-
-    // Тест реакции
-    initReactionGame() {
-        this.reactionGame = {
-            active: false,
-            startTime: 0,
-            bestTime: parseInt(localStorage.getItem('bestReactionTime')) || 0
-        };
-        document.getElementById('best-time').textContent = this.reactionGame.bestTime;
-    }
-
-    startReactionTest() {
-        const target = document.getElementById('reaction-target');
-        const area = document.getElementById('reaction-area');
-        const timeDisplay = document.getElementById('current-time');
-
-        this.reactionGame.active = true;
-        timeDisplay.textContent = '0';
-        target.style.display = 'none';
-
-        setTimeout(() => {
-            if (!this.reactionGame.active) return;
-            
-            const x = Math.random() * (area.offsetWidth - 60);
-            const y = Math.random() * (area.offsetHeight - 60);
-            
-            target.style.left = x + 'px';
-            target.style.top = y + 'px';
-            target.style.display = 'block';
-            this.reactionGame.startTime = Date.now();
-
-            target.onclick = () => {
-                if (!this.reactionGame.active) return;
-                
-                const reactionTime = Date.now() - this.reactionGame.startTime;
-                timeDisplay.textContent = reactionTime;
-                this.reactionGame.active = false;
-                target.style.display = 'none';
-
-                if (reactionTime < this.reactionGame.bestTime || this.reactionGame.bestTime === 0) {
-                    this.reactionGame.bestTime = reactionTime;
-                    document.getElementById('best-time').textContent = reactionTime;
-                    localStorage.setItem('bestReactionTime', reactionTime);
-                    this.unlockAchievement('Скорость света!');
-                }
-
-                this.playSound('success');
-            };
-        }, Math.random() * 2000 + 1000);
-    }
-
-    // Игра на память
-    initMemoryGame() {
-        this.memoryGame = {
-            cards: [],
-            flippedCards: [],
-            matchedPairs: 0,
-            attempts: 0,
-            bestScore: parseInt(localStorage.getItem('memoryBestScore')) || 0
-        };
-        document.getElementById('memory-score').textContent = this.memoryGame.bestScore;
-    }
-
-    startMemoryGame() {
-        const symbols = ['🚀', '⭐', '🔮', '🎯', '💎', '🔑', '👁️', '⚡'];
-        this.memoryGame.cards = [...symbols, ...symbols]
-            .sort(() => Math.random() - 0.5);
+function initializeApp() {
+    console.log('🚀 Games Verse v' + APP_CONFIG.version + ' initializing...');
+    
+    try {
+        setupNavigation();
+        setupTelegramIntegration();
+        setupThemeToggle();
+        setupShareButton();
         
-        this.memoryGame.flippedCards = [];
-        this.memoryGame.matchedPairs = 0;
-        this.memoryGame.attempts = 0;
-
-        this.renderMemoryGrid();
-        this.updateMemoryStats();
-    }
-
-    renderMemoryGrid() {
-        const grid = document.getElementById('memory-grid');
-        grid.innerHTML = '';
-
-        this.memoryGame.cards.forEach((symbol, index) => {
-            const card = document.createElement('div');
-            card.className = 'memory-card';
-            card.innerHTML = '?';
-            card.dataset.index = index;
-            card.dataset.symbol = symbol;
-
-            card.addEventListener('click', () => this.flipMemoryCard(card));
-            grid.appendChild(card);
-        });
-    }
-
-    flipMemoryCard(card) {
-        if (this.memoryGame.flippedCards.length >= 2 || card.classList.contains('flipped')) {
-            return;
-        }
-
-        card.classList.add('flipped');
-        card.textContent = card.dataset.symbol;
-        this.memoryGame.flippedCards.push(card);
-
-        if (this.memoryGame.flippedCards.length === 2) {
-            this.memoryGame.attempts++;
-            this.checkMemoryMatch();
-        }
-
-        this.updateMemoryStats();
-        this.playSound('click');
-    }
-
-    checkMemoryMatch() {
-        const [card1, card2] = this.memoryGame.flippedCards;
+        // Загрузка статических данных
+        displayGames(GAMES_DATA);
+        displayNews(NEWS_DATA);
         
-        if (card1.dataset.symbol === card2.dataset.symbol) {
-            card1.classList.add('matched');
-            card2.classList.add('matched');
-            this.memoryGame.matchedPairs++;
-            
-            if (this.memoryGame.matchedPairs === 8) {
-                this.onMemoryGameWin();
-            }
-        } else {
-            setTimeout(() => {
-                card1.classList.remove('flipped');
-                card2.classList.remove('flipped');
-                card1.textContent = '?';
-                card2.textContent = '?';
-            }, 1000);
-        }
-
-        setTimeout(() => {
-            this.memoryGame.flippedCards = [];
-        }, 1000);
-    }
-
-    onMemoryGameWin() {
-        if (this.memoryGame.attempts < this.memoryGame.bestScore || this.memoryGame.bestScore === 0) {
-            this.memoryGame.bestScore = this.memoryGame.attempts;
-            document.getElementById('memory-score').textContent = this.memoryGame.attempts;
-            localStorage.setItem('memoryBestScore', this.memoryGame.attempts);
-            this.unlockAchievement('Феноменальная память!');
-        }
-        this.playSound('success');
-    }
-
-    updateMemoryStats() {
-        document.getElementById('attempts').textContent = this.memoryGame.attempts;
-        document.getElementById('pairs-found').textContent = this.memoryGame.matchedPairs;
-    }
-
-    // Система достижений
-    unlockAchievement(name) {
-        if (this.achievements.has(name)) return;
+        document.getElementById('app-version').textContent = APP_CONFIG.version;
+        document.getElementById('app-build').textContent = APP_CONFIG.build;
         
-        this.achievements.add(name);
-        this.showAchievementPopup(name);
+        console.log('✅ Games Verse initialized successfully');
         
-        const achievements = JSON.parse(localStorage.getItem('achievements') || '[]');
-        achievements.push({ name, date: new Date().toISOString() });
-        localStorage.setItem('achievements', JSON.stringify(achievements));
-        
-        this.updateAchievementsDisplay();
-    }
-
-    showAchievementPopup(name) {
-        const popup = document.createElement('div');
-        popup.className = 'achievement-popup';
-        popup.innerHTML = `
-            <h4>🎉 Достижение разблокировано!</h4>
-            <p>${name}</p>
-        `;
-        
-        document.body.appendChild(popup);
-        
-        setTimeout(() => popup.classList.add('show'), 100);
-        setTimeout(() => {
-            popup.classList.remove('show');
-            setTimeout(() => popup.remove(), 500);
-        }, 3000);
-    }
-
-    updateAchievementsDisplay() {
-        document.getElementById('achievements').textContent = 
-            `${this.achievements.size}/10`;
-        
-        this.updateActivityLevel();
-    }
-
-    updateActivityLevel() {
-        const level = document.getElementById('activity-level');
-        const count = this.achievements.size;
-        
-        if (count >= 8) level.textContent = 'LEGEND';
-        else if (count >= 5) level.textContent = 'PRO';
-        else if (count >= 3) level.textContent = 'Опытный';
-        else level.textContent = 'Новичок';
-    }
-
-    // Трекер времени
-    startTimeTracker() {
-        setInterval(() => {
-            const now = new Date();
-            const diff = Math.floor((now - this.startTime) / 1000);
-            const hours = Math.floor(diff / 3600);
-            const minutes = Math.floor((diff % 3600) / 60);
-            const seconds = diff % 60;
-            
-            document.getElementById('time-spent').textContent = 
-                `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-            
-            this.stats.timeSpent = diff;
-            this.saveStats();
-        }, 1000);
-    }
-
-    // Система секретных кодов
-    checkSecretCode() {
-        const input = document.getElementById('secret-code');
-        const code = input.value.trim().toLowerCase();
-        
-        const secrets = {
-            'cyberpunk': () => this.activateCyberpunkMode(),
-            'matrix': () => this.activateMatrixMode(),
-            'neon': () => this.boostNeonEffects(),
-            'godmode': () => this.unlockAllAchievements(),
-            'reset': () => this.resetAllData()
-        };
-
-        if (secrets[code]) {
-            secrets[code]();
-            input.value = '';
-            this.playSound('success');
-        } else {
-            input.style.borderColor = '#ff0000';
-            setTimeout(() => input.style.borderColor = '#ff00ff', 1000);
-        }
-    }
-
-    activateCyberpunkMode() {
-        document.body.style.filter = 'hue-rotate(90deg)';
-        setTimeout(() => document.body.style.filter = '', 5000);
-        this.unlockAchievement('Киберпространство!');
-    }
-
-    activateMatrixMode() {
-        document.querySelectorAll('.neon-text').forEach(text => {
-            text.style.animation = 'none';
-            setTimeout(() => text.style.animation = '', 100);
-        });
-        this.createMatrixRain();
-        this.unlockAchievement('Избранный!');
-    }
-
-    boostNeonEffects() {
-        document.body.classList.add('glitch');
-        setTimeout(() => document.body.classList.remove('glitch'), 2000);
-        this.unlockAchievement('Неоновый король!');
-    }
-
-    unlockAllAchievements() {
-        const allAchievements = [
-            'Скорость света!', 'Феноменальная память!', 'Киберпространство!',
-            'Избранный!', 'Неоновый король!', 'Мастер лабиринтов!',
-            'Гуру печати!', 'Ветеран сайта!', 'Искатель секретов!', 'LEGEND'
-        ];
-        
-        allAchievements.forEach(achievement => this.unlockAchievement(achievement));
-    }
-
-    resetAllData() {
-        localStorage.clear();
-        location.reload();
-    }
-
-    // Спецэффекты
-    createCyberEffects() {
-        setInterval(() => {
-            this.createCyberLine();
-        }, 2000);
-
-        setInterval(() => {
-            this.createFloatingParticle();
-        }, 1000);
-    }
-
-    createCyberLine() {
-        const line = document.createElement('div');
-        line.className = 'cyber-line';
-        line.style.left = Math.random() * 100 + '%';
-        line.style.width = Math.random() * 100 + 50 + 'px';
-        document.body.appendChild(line);
-        
-        setTimeout(() => line.remove(), 3000);
-    }
-
-    createFloatingParticle() {
-        const particle = document.createElement('div');
-        particle.style.cssText = `
-            position: fixed;
-            width: 4px;
-            height: 4px;
-            background: #00ff00;
-            border-radius: 50%;
-            pointer-events: none;
-            z-index: 999;
-            left: ${Math.random() * 100}%;
-            top: -10px;
-            animation: floatDown 5s linear forwards;
-            box-shadow: 0 0 10px #00ff00;
-        `;
-        
-        document.body.appendChild(particle);
-        
-        setTimeout(() => particle.remove(), 5000);
-    }
-
-    createMatrixRain() {
-        for (let i = 0; i < 50; i++) {
-            setTimeout(() => this.createMatrixChar(), i * 100);
-        }
-    }
-
-    createMatrixChar() {
-        const char = document.createElement('div');
-        char.textContent = String.fromCharCode(0x30A0 + Math.random() * 96);
-        char.style.cssText = `
-            position: fixed;
-            color: #00ff00;
-            font-size: ${Math.random() * 20 + 10}px;
-            left: ${Math.random() * 100}%;
-            top: -50px;
-            animation: matrixRain 3s linear forwards;
-            pointer-events: none;
-            z-index: 1000;
-            text-shadow: 0 0 10px #00ff00;
-        `;
-        
-        document.body.appendChild(char);
-        
-        setTimeout(() => char.remove(), 3000);
-    }
-
-    // Управление звуком
-    playSound(type) {
-        const audio = document.getElementById(`${type}-sound`);
-        if (audio) {
-            audio.currentTime = 0;
-            audio.play().catch(() => {});
-        }
-    }
-
-    // Сохранение статистики
-    saveStats() {
-        localStorage.setItem('cyberspaceStats', JSON.stringify(this.stats));
-    }
-
-    loadStats() {
-        const saved = localStorage.getItem('cyberspaceStats');
-        if (saved) {
-            this.stats = { ...this.stats, ...JSON.parse(saved) };
-        }
-
-        const achievements = JSON.parse(localStorage.getItem('achievements') || '[]');
-        achievements.forEach(ach => this.achievements.add(ach.name));
-        this.updateAchievementsDisplay();
-    }
-
-    // Обработчики событий
-    initEventListeners() {
-        // Открытие модальных окон игр
-        document.getElementById('reaction-game').addEventListener('click', () => {
-            document.getElementById('reaction-modal').style.display = 'block';
-        });
-
-        document.getElementById('memory-game').addEventListener('click', () => {
-            document.getElementById('memory-modal').style.display = 'block';
-            this.startMemoryGame();
-        });
-
-        // Закрытие модальных окон
-        document.querySelectorAll('.close').forEach(closeBtn => {
-            closeBtn.addEventListener('click', (e) => {
-                e.target.closest('.modal').style.display = 'none';
-            });
-        });
-
-        // Закрытие по клику вне окна
-        window.addEventListener('click', (e) => {
-            if (e.target.classList.contains('modal')) {
-                e.target.style.display = 'none';
-            }
-        });
-
-        // Enter для секретных кодов
-        document.getElementById('secret-code').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                this.checkSecretCode();
-            }
-        });
-
-        // Анимации при загрузке
-        window.addEventListener('load', () => {
-            document.body.style.opacity = '0';
-            document.body.style.transition = 'opacity 1s ease';
-            
-            setTimeout(() => {
-                document.body.style.opacity = '1';
-            }, 100);
-        });
+    } catch (error) {
+        console.error('❌ App initialization failed:', error);
+        showNotification('Ошибка загрузки приложения', 'error');
     }
 }
 
-// Добавляем CSS анимации
-const style = document.createElement('style');
-style.textContent = `
-    @keyframes floatDown {
-        to { top: 100vh; }
+// ==================== UI FUNCTIONS ====================
+
+function displayGames(games) {
+    const container = document.getElementById('games-container');
+    
+    if (!games || games.length === 0) {
+        container.innerHTML = `
+            <div class="empty-state">
+                <div class="empty-icon">🎮</div>
+                <h3>Игры временно недоступны</h3>
+                <p>Попробуйте обновить страницу позже</p>
+            </div>
+        `;
+        return;
     }
     
-    @keyframes matrixRain {
-        to { 
-            top: 100vh;
-            opacity: 0;
+    container.innerHTML = games.map((game, index) => `
+        <div class="game-card" data-game-id="${game.id}">
+            <div class="game-card-content">
+                <div class="game-image">
+                    <img src="${game.image}" alt="${game.name}" class="game-avatar" 
+                         onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjYwIiBoZWlnaHQ9IjYwIiByeD0iMTYiIGZpbGw9IiM2NjdlZWEiLz4KPHN2ZyB4PSIyMCIgeT0iMjAiIHdpZHRoPSIyMCIgaGVpZ2h0PSIyMCIgZmlsbD0id2hpdGUiPjxyZWN0IHg9IjgiIHk9IjQiIHdpZHRoPSI4IiBoZWlnaHQ9IjIiLz48cmVjdCB4PSI0IiB5PSI4IiB3aWR0aD0iMTYiIGhlaWdodD0iMiIvPjxyZWN0IHg9IjIiIHk9IjEyIiB3aWR0aD0iMjAiIGhlaWdodD0iMiIvPjxyZWN0IHg9IjQiIHk9IjE2IiB3aWR0aD0iMTYiIGhlaWdodD0iMiIvPjxyZWN0IHg9IjgiIHk9IjIwIiB3aWR0aD0iOCIgaGVpZ2h0PSIyIi8+PC9zdmc+Cjwvc3ZnPg=='">
+                </div>
+                
+                <div class="game-info">
+                    <div class="game-header">
+                        <div class="game-title-wrapper">
+                            <h3>${game.name}</h3>
+                            <div class="game-genre">${game.genre}</div>
+                            <div class="game-rating">
+                                <span class="stars">${'★'.repeat(game.rating)}${'☆'.repeat(5 - game.rating)}</span>
+                                <span class="rating-text">${game.rating}.0</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <button class="play-button" data-url="${game.url}">
+                Играть
+            </button>
+        </div>
+    `).join('');
+    
+    setupGameButtons();
+}
+
+function displayNews(news) {
+    const container = document.getElementById('news-container');
+    
+    if (!news || news.length === 0) {
+        container.innerHTML = '<div class="news-item"><p>Новости временно недоступны</p></div>';
+        return;
+    }
+    
+    container.innerHTML = news.map(item => `
+        <div class="news-item">
+            <span class="news-date">${formatDate(item.date)}</span>
+            <div class="news-title">${item.title}</div>
+            <div class="news-content">${item.content}</div>
+            ${item.image ? `<img src="${item.image}" alt="News image" class="news-image">` : ''}
+        </div>
+    `).join('');
+}
+
+function setupGameButtons() {
+    const playButtons = document.querySelectorAll('.play-button');
+    playButtons.forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.stopPropagation();
+            const url = this.getAttribute('data-url');
+            openGame(url);
+        });
+    });
+    
+    const gameCards = document.querySelectorAll('.game-card');
+    gameCards.forEach(card => {
+        card.addEventListener('click', function() {
+            const playButton = this.querySelector('.play-button');
+            const url = playButton.getAttribute('data-url');
+            openGame(url);
+        });
+    });
+}
+
+function openGame(url) {
+    if (window.Telegram && window.Telegram.WebApp) {
+        window.Telegram.WebApp.openLink(url);
+    } else {
+        window.open(url, '_blank', 'noopener,noreferrer');
+    }
+}
+
+// ==================== OTHER FUNCTIONS ====================
+
+function setupNavigation() {
+    const navItems = document.querySelectorAll('.nav-item');
+    const sections = document.querySelectorAll('.content-section');
+    
+    navItems.forEach(item => {
+        item.addEventListener('click', function() {
+            const targetSection = this.getAttribute('data-section');
+            
+            navItems.forEach(nav => nav.classList.remove('active'));
+            this.classList.add('active');
+            
+            sections.forEach(section => {
+                section.classList.remove('active');
+                if (section.id === targetSection) {
+                    section.classList.add('active');
+                }
+            });
+        });
+    });
+}
+
+function setupTelegramIntegration() {
+    if (window.Telegram && window.Telegram.WebApp) {
+        const tg = window.Telegram.WebApp;
+        
+        tg.expand();
+        tg.enableClosingConfirmation();
+        
+        updateUserProfile(tg.initDataUnsafe.user);
+        
+        tg.ready();
+    } else {
+        console.log('Telegram WebApp not detected, running in browser mode');
+        updateUserProfile({
+            first_name: 'Пользователь',
+            username: 'user'
+        });
+    }
+}
+
+function updateUserProfile(user) {
+    if (user) {
+        const name = user.first_name || 'Пользователь';
+        const username = user.username ? `@${user.username}` : 'Пользователь';
+        
+        document.getElementById('tg-name').textContent = name;
+        document.getElementById('tg-username').textContent = username;
+        
+        if (user.photo_url) {
+            document.getElementById('tg-avatar').innerHTML = `<img src="${user.photo_url}" alt="${name}" style="width: 100%; height: 100%; border-radius: 50%;">`;
         }
     }
-`;
-document.head.appendChild(style);
-
-// Запуск приложения
-const cyberSpace = new CyberSpace();
-
-// Глобальные функции для кнопок
-function startReactionTest() {
-    cyberSpace.startReactionTest();
 }
 
-function startMemoryGame() {
-    cyberSpace.startMemoryGame();
+function setupThemeToggle() {
+    const themeToggle = document.getElementById('theme-toggle');
+    const themeIcon = themeToggle.querySelector('.theme-icon');
+    const themeText = themeToggle.querySelector('.theme-text');
+    
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+    updateThemeButton(savedTheme);
+    
+    themeToggle.addEventListener('click', function() {
+        const currentTheme = document.documentElement.getAttribute('data-theme');
+        const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+        
+        document.documentElement.setAttribute('data-theme', newTheme);
+        localStorage.setItem('theme', newTheme);
+        updateThemeButton(newTheme);
+    });
+    
+    function updateThemeButton(theme) {
+        if (theme === 'dark') {
+            themeIcon.textContent = '☀️';
+            themeText.textContent = 'Светлая тема';
+        } else {
+            themeIcon.textContent = '🌙';
+            themeText.textContent = 'Темная тема';
+        }
+    }
 }
 
-function checkSecretCode() {
-    cyberSpace.checkSecretCode();
+function setupShareButton() {
+    const shareButton = document.getElementById('share-button');
+    shareButton.addEventListener('click', shareApp);
 }
+
+function shareApp() {
+    const shareText = "🎮 Открой для себя Games Verse - все лучшие игры Telegram в одном приложении! Присоединяйся сейчас!";
+    const shareUrl = window.location.href;
+    
+    if (window.Telegram && window.Telegram.WebApp) {
+        window.Telegram.WebApp.shareUrl(shareUrl, shareText);
+    } else if (navigator.share) {
+        navigator.share({
+            title: 'Games Verse',
+            text: shareText,
+            url: shareUrl
+        });
+    } else {
+        navigator.clipboard.writeText(shareUrl).then(() => {
+            showNotification('Ссылка скопирована в буфер!', 'success');
+        });
+    }
+}
+
+function formatDate(dateString) {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('ru-RU');
+}
+
+function showNotification(message, type = 'info') {
+    const notification = document.createElement('div');
+    notification.className = `notification ${type}`;
+    
+    const icons = {
+        success: '✅',
+        error: '❌',
+        info: 'ℹ️'
+    };
+    
+    notification.innerHTML = `
+        <div class="notification-icon">${icons[type] || icons.info}</div>
+        <div class="notification-content">
+            <div class="notification-message">${message}</div>
+        </div>
+    `;
+    
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        notification.classList.add('slide-out');
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.parentNode.removeChild(notification);
+            }
+        }, 300);
+    }, 3000);
+}
+
+function closeAnnouncement() {
+    const banner = document.getElementById('announcement');
+    if (banner) {
+        banner.style.display = 'none';
+        localStorage.setItem('announcement_closed', 'true');
+    }
+}
+
+function checkAnnouncementState() {
+    const isClosed = localStorage.getItem('announcement_closed');
+    if (isClosed === 'true') {
+        const banner = document.getElementById('announcement');
+        if (banner) {
+            banner.style.display = 'none';
+        }
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const images = document.querySelectorAll('img');
+    images.forEach(img => {
+        img.setAttribute('draggable', 'false');
+    });
+    
+    checkAnnouncementState();
+});
